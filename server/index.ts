@@ -1,8 +1,16 @@
+import 'dotenv/config';
 import express, { type Request, Response, NextFunction } from "express";
 import { registerRoutes } from "./routes";
 import { setupVite, serveStatic, log } from "./vite";
 import { storage } from "./storage";
 import { runMigrations } from "./migrate";
+
+// Load environment variables from .env file
+console.log('Environment variables loaded:', {
+  NODE_ENV: process.env.NODE_ENV,
+  DATABASE_URL: process.env.DATABASE_URL ? '***' : 'Not set',
+  HERE_API_KEY: process.env.HERE_API_KEY ? '***' : 'Not set'
+});
 
 const app = express();
 app.use(express.json({ limit: '50mb' }));
