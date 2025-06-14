@@ -90,28 +90,52 @@ export async function setupVite(app: Express, server: Server) {
 }
 
 export function serveStatic(app: Express) {
-  // Serve static files from multiple possible locations
+  const rootDir = path.resolve(import.meta.dirname, '..');
+  
+  // Possible build output directories
   const staticDirs = [
-    path.resolve(import.meta.dirname, "..", "dist", "public"),
-    path.resolve(import.meta.dirname, "..", "client", "public"),
-    path.resolve(import.meta.dirname, "..", "client")
+    path.join(rootDir, 'dist', 'public'),
+    path.join(rootDir, 'dist'),
+    path.join(rootDir, 'client', 'dist'),
+    path.join(rootDir, 'client', 'public'),
+    path.join(rootDir, 'client')
   ];
 
-  // Add static directories that exist
+  // Log all directories we'll try to serve from
+  console.log('Looking for static files in directories:');
+  staticDirs.forEach(dir => {
+    console.log(`- ${dir} ${fs.existsSync(dir) ? '(exists)' : '(not found)'}`);
+  });
+
+  // Serve static files from existing directories
   staticDirs.forEach(dir => {
     if (fs.existsSync(dir)) {
       console.log(`Serving static files from: ${dir}`);
-      app.use(express.static(dir));
+      app.use(express.static(dir, { index: false }));
+      
+      // Also try serving with /public prefix
+      if (dir.endsWith('/public')) {
+        const baseDir = dir.replace(/\/public$/, '');
+        console.log(`Also serving static files from: ${baseDir}/public`);
+        app.use('/public', express.static(dir, { index: false }));
+      }
     }
   });
 
   // Handle SPA fallback
-  app.use("*", (req, res) => {
+  app.get('*', (req, res) => {
+    // Skip API and asset requests
+    if (req.path.startsWith('/api/') || req.path.startsWith('/assets/')) {
+      return res.status(404).send('Not Found');
+    }
+
     // Try multiple possible locations for index.html
     const possibleIndexPaths = [
-      path.join(import.meta.dirname, "..", "dist", "public", "index.html"),
-      path.join(import.meta.dirname, "..", "client", "public", "index.html"),
-      path.join(import.meta.dirname, "..", "client", "index.html")
+      path.join(rootDir, 'dist', 'public', 'index.html'),
+      path.join(rootDir, 'dist', 'index.html'),
+      path.join(rootDir, 'client', 'dist', 'index.html'),
+      path.join(rootDir, 'client', 'public', 'index.html'),
+      path.join(rootDir, 'client', 'index.html')
     ];
 
     for (const indexPath of possibleIndexPaths) {
@@ -121,7 +145,9 @@ export function serveStatic(app: Express) {
       }
     }
 
-    // If no index.html found, return 404
-    res.status(404).send('Not Found: Could not find index.html in any of the expected locations');
+    // If no index.html found, return 500 with debug info
+    const errorMessage = `Could not find index.html. Tried:\n${possibleIndexPaths.join('\n')}\n\nCurrent directory: ${process.cwd()}\n__dirname: ${__dirname}\nimport.meta.url: ${import.meta.url}`;
+    console.error(errorMessage);
+    res.status(500).send('Internal Server Error: Could not find index.html');
   });
 }

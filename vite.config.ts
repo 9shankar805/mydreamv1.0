@@ -24,6 +24,17 @@ export default defineConfig({
     emptyOutDir: true,
     rollupOptions: {
       input: path.resolve(__dirname, 'client/index.html'),
+      output: {
+        entryFileNames: 'assets/[name].[hash].js',
+        chunkFileNames: 'assets/[name].[hash].js',
+        assetFileNames: 'assets/[name].[hash][extname]',
+      },
     },
+    manifest: true,
+    sourcemap: true,
+  },
+  server: {
+    port: 3000,
+    strictPort: true,
   },
 });
