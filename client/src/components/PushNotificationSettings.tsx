@@ -14,8 +14,7 @@ export default function PushNotificationSettings() {
     isSubscribed,
     requestPermission,
     subscribe,
-    unsubscribe,
-    sendTestNotification
+    unsubscribe
   } = usePushNotifications();
 
   const [isLoading, setIsLoading] = useState(false);
@@ -71,25 +70,7 @@ export default function PushNotificationSettings() {
     setIsLoading(false);
   };
 
-  const handleTestNotification = async () => {
-    setIsLoading(true);
-    
-    try {
-      await sendTestNotification();
-      toast({
-        title: "Test Sent",
-        description: "Check your device's notification bar for the test notification."
-      });
-    } catch (error) {
-      toast({
-        title: "Test Failed",
-        description: "Could not send test notification.",
-        variant: "destructive"
-      });
-    }
-    
-    setIsLoading(false);
-  };
+
 
   if (!isSupported) {
     return (
@@ -141,17 +122,7 @@ export default function PushNotificationSettings() {
           </div>
         )}
 
-        {isSubscribed && (
-          <Button 
-            onClick={handleTestNotification}
-            disabled={isLoading}
-            variant="outline"
-            className="w-full"
-          >
-            <Bell className="mr-2 h-4 w-4" />
-            Send Test Notification
-          </Button>
-        )}
+
 
         <div className="text-xs text-muted-foreground">
           <p className="font-medium mb-1">You'll be notified about:</p>

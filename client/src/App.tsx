@@ -11,9 +11,7 @@ import NotFound from "@/pages/not-found";
 import NavbarWrapper from "@/components/NavbarWrapper";
 import BottomNavbar from "@/components/BottomNavbar";
 import Footer from "@/components/Footer";
-import ModeSwiper from "@/components/ModeSwiper";
 import MobileNotificationBar from "@/components/MobileNotificationBar";
-import NotificationTestButton from "@/components/NotificationTestButton";
 import Homepage from "@/pages/Homepage";
 import FoodHomepage from "@/pages/FoodHomepage";
 import Products from "@/pages/Products";
@@ -121,6 +119,38 @@ function AppRouter() {
 }
 
 function App() {
+  // Add a style tag to handle mobile viewport and keyboard
+  const viewportFix = `
+    /* Fix for mobile viewport */
+    @supports (-webkit-touch-callout: none) {
+      html, body {
+        height: 100%;
+        overflow: hidden;
+      }
+      
+      #root {
+        height: 100%;
+        overflow: auto;
+        -webkit-overflow-scrolling: touch;
+      }
+      
+      /* Fix for iOS 15+ Safari */
+      @media (max-width: 768px) {
+        body {
+          position: fixed;
+          width: 100%;
+          height: 100%;
+        }
+      }
+    }
+    
+    /* Prevent body scrolling when modal is open */
+    body.modal-open {
+      height: 100%;
+      overflow: hidden;
+    }
+  `;
+
   return (
     <QueryClientProvider client={queryClient}>
       <AuthProvider>
@@ -128,15 +158,15 @@ function App() {
           <WishlistProvider>
             <AppModeProvider>
               <TooltipProvider>
-                <div className="min-h-screen flex flex-col">
+                <style dangerouslySetInnerHTML={{ __html: viewportFix }} />
+                <div className="flex flex-col min-h-screen relative pb-16 md:pb-0">
                   <MobileNotificationBar className="md:hidden" />
                   <NavbarWrapper />
-                  <main className="flex-1 pb-16 md:pb-0">
+                  <main className="flex-1 overflow-y-auto">
                     <AppRouter />
                   </main>
-                  <Footer />
+                  <Footer className="md:mt-auto" />
                   <BottomNavbar />
-                  <NotificationTestButton />
                 </div>
                 <Toaster />
               </TooltipProvider>

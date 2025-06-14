@@ -1,9 +1,13 @@
 import { Link } from "wouter";
 import { Store, Facebook, Twitter, Instagram, Youtube, Mail, Phone } from "lucide-react";
 
-export default function Footer() {
+interface FooterProps {
+  className?: string;
+}
+
+export default function Footer({ className = '' }: FooterProps) {
   return (
-    <footer className="bg-gray-800 text-white py-12 mt-16">
+    <footer className={`bg-gray-800 text-white py-12 ${className}`}>
       <div className="max-w-7xl mx-auto px-4 sm:px-6 lg:px-8">
         <div className="grid grid-cols-1 md:grid-cols-4 gap-8">
           {/* Brand */}

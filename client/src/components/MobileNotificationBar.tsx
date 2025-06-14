@@ -95,7 +95,7 @@ export default function MobileNotificationBar({ className = '' }: MobileNotifica
   const activeNotification = unreadNotifications[currentNotification];
 
   return (
-    <div className={`fixed top-0 left-0 right-0 z-50 ${className}`}>
+    <div className={`sticky top-0 left-0 right-0 z-40 ${className}`} style={{ position: 'sticky' }}>
       {/* Main notification bar */}
       <div 
         className={`${getNotificationColor(activeNotification?.type)} text-white shadow-lg cursor-pointer transition-all duration-300 ${

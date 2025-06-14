@@ -8,7 +8,6 @@ interface PushNotificationHook {
   requestPermission: () => Promise<boolean>;
   subscribe: () => Promise<boolean>;
   unsubscribe: () => Promise<boolean>;
-  sendTestNotification: () => Promise<void>;
 }
 
 export function usePushNotifications(): PushNotificationHook {
@@ -136,24 +135,6 @@ export function usePushNotifications(): PushNotificationHook {
     }
   };
 
-  const sendTestNotification = async (): Promise<void> => {
-    if (!user) return;
-
-    try {
-      await fetch('/api/push/test', {
-        method: 'POST',
-        headers: {
-          'Content-Type': 'application/json',
-        },
-        credentials: 'include',
-        body: JSON.stringify({
-          userId: user.id
-        })
-      });
-    } catch (error) {
-      console.error('Failed to send test notification:', error);
-    }
-  };
 
   return {
     isSupported,
@@ -161,8 +142,7 @@ export function usePushNotifications(): PushNotificationHook {
     isSubscribed,
     requestPermission,
     subscribe,
-    unsubscribe,
-    sendTestNotification
+    unsubscribe
   };
 }
 

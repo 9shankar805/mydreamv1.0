@@ -43,11 +43,38 @@ export class RealTimeTrackingService {
   private wsConnections: Map<string, WebSocket> = new Map();
   private userSessions: Map<number, string[]> = new Map(); // userId -> sessionIds
 
+  private cleanupInterval: NodeJS.Timeout | null = null;
+  private isCleaningUp = false;
+
   constructor() {
-    // Clean up inactive sessions every 5 minutes
-    setInterval(() => {
-      this.cleanupInactiveSessions();
-    }, 5 * 60 * 1000);
+    // Start with a shorter interval for cleanup to recover quickly from failures
+    this.startCleanupInterval(30 * 1000); // 30 seconds initially
+  }
+
+  private startCleanupInterval(intervalMs: number) {
+    if (this.cleanupInterval) {
+      clearInterval(this.cleanupInterval);
+    }
+    
+    this.cleanupInterval = setInterval(async () => {
+      if (this.isCleaningUp) return;
+      
+      try {
+        this.isCleaningUp = true;
+        await this.cleanupInactiveSessions();
+        
+        // If successful, increase the interval to 5 minutes
+        if (intervalMs !== 5 * 60 * 1000) {
+          this.startCleanupInterval(5 * 60 * 1000);
+        }
+      } catch (error) {
+        console.error('Session cleanup failed, will retry more frequently:', error);
+        // On failure, retry more frequently (every 30 seconds)
+        this.startCleanupInterval(30 * 1000);
+      } finally {
+        this.isCleaningUp = false;
+      }
+    }, intervalMs);
   }
 
   // WebSocket connection management
@@ -445,18 +472,31 @@ export class RealTimeTrackingService {
     try {
       const fiveMinutesAgo = new Date(Date.now() - 5 * 60 * 1000);
       
-      const inactiveSessions = await db.select()
-        .from(webSocketSessions)
-        .where(and(
-          eq(webSocketSessions.isActive, true),
-          // lastActivity < fiveMinutesAgo
-        ));
+      try {
+        const inactiveSessions = await db.select()
+          .from(webSocketSessions)
+          .where(and(
+            eq(webSocketSessions.isActive, true)
+            // lastActivity < fiveMinutesAgo
+          ))
+          .execute()
+          .catch(err => {
+            console.warn('Database query failed during session cleanup:', err.message);
+            return [];
+          });
 
-      for (const session of inactiveSessions) {
-        const ws = this.wsConnections.get(session.sessionId);
-        if (!ws || ws.readyState !== WebSocket.OPEN) {
-          this.unregisterWebSocketConnection(session.sessionId, session.userId);
+        for (const session of inactiveSessions) {
+          try {
+            const ws = this.wsConnections.get(session.sessionId);
+            if (!ws || ws.readyState !== WebSocket.OPEN) {
+              await this.unregisterWebSocketConnection(session.sessionId, session.userId);
+            }
+          } catch (err) {
+            console.error(`Error cleaning up session ${session.sessionId}:`, err);
+          }
         }
+      } catch (err) {
+        console.error('Error in session cleanup:', err);
       }
 
     } catch (error) {
