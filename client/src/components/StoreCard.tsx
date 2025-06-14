@@ -68,16 +68,27 @@ export default function StoreCard({ store, showDistance = true }: StoreCardProps
     }
   };
 
+  // Handle card click but allow button clicks to work independently
+  const handleCardClick = (e: React.MouseEvent) => {
+    // Don't navigate if the click was on a button, link, or interactive element
+    const target = e.target as HTMLElement;
+    if (target.closest('button, a, [role="button"], .no-navigate')) {
+      e.preventDefault();
+      e.stopPropagation();
+      return;
+    }
+  };
+
   return (
-    <Card className="hover:shadow-lg transition-shadow duration-200">
-      <CardHeader className="pb-2 p-3">
-        <div className="flex items-start justify-between">
-          <div className="flex-1">
-            <Link href={`/store/${store.id}`}>
-              <h3 className="font-semibold text-sm hover:text-primary cursor-pointer line-clamp-1">
-                {store.name}
-              </h3>
-            </Link>
+    <div onClick={handleCardClick}>
+      <Link href={`/store/${store.id}`} className="block cursor-pointer">
+        <Card className="hover:shadow-lg transition-shadow duration-200 h-full flex flex-col">
+          <CardHeader className="pb-2 p-3 flex-grow-0">
+            <div className="flex items-start justify-between">
+              <div className="flex-1">
+                <h3 className="font-semibold text-sm hover:text-primary line-clamp-1">
+                  {store.name}
+                </h3>
             <div className="flex items-center gap-1 mt-1">
               <Badge variant={store.storeType === 'restaurant' ? 'default' : 'secondary'} className="text-xs px-1 py-0">
                 {store.storeType === 'restaurant' ? 'Restaurant' : 'Retail'}
@@ -160,7 +171,9 @@ export default function StoreCard({ store, showDistance = true }: StoreCardProps
             Delivery Available
           </Badge>
         )}
-      </CardContent>
-    </Card>
+        </CardContent>
+        </Card>
+      </Link>
+    </div>
   );
 }

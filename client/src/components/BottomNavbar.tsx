@@ -101,7 +101,7 @@ export default function BottomNavbar() {
 
   return (
     <nav className="fixed bottom-0 left-0 right-0 bg-white dark:bg-gray-900 border-t border-gray-200 dark:border-gray-800 z-50 md:hidden safe-area-inset-bottom">
-      <div className="flex items-center justify-around h-16 px-4 pb-safe">
+      <div className="grid grid-cols-4 gap-1 h-16 px-1 pb-safe">
         {navItems.map((item) => {
           const Icon = item.icon;
           return (
@@ -109,14 +109,14 @@ export default function BottomNavbar() {
               key={item.href}
               href={item.href}
               className={cn(
-                "flex flex-col items-center justify-center space-y-1 py-2 px-1 sm:px-3 rounded-lg transition-colors min-w-0 flex-1",
+                "flex flex-col items-center justify-center rounded-lg transition-colors p-1",
                 item.active
                   ? "text-primary bg-primary/10"
                   : "text-gray-600 dark:text-gray-400 hover:text-primary hover:bg-primary/5"
               )}
             >
               <Icon className="h-4 w-4 sm:h-5 sm:w-5" />
-              <span className="text-xs font-medium truncate">{item.label}</span>
+              <span className="text-[10px] xs:text-xs font-medium text-center leading-tight mt-0.5 px-1">{item.label}</span>
             </Link>
           );
         })}

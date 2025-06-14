@@ -11,10 +11,104 @@ import { useAppMode } from "@/hooks/useAppMode";
 import type { Product, Store } from "@shared/schema";
 import { Swiper, SwiperSlide } from 'swiper/react';
 import { Navigation, Pagination, Autoplay } from 'swiper/modules';
-import { useEffect } from "react";
+import { useEffect, useRef, useState } from "react";
+
+// Countdown Timer Component
+const CountdownTimer = () => {
+  const [timeLeft, setTimeLeft] = useState({
+    days: 2,
+    hours: 23,
+    minutes: 59,
+    seconds: 59,
+  });
+
+  useEffect(() => {
+    // Calculate time until next 3-day interval
+    const calculateTimeLeft = () => {
+      const now = new Date();
+      // Get days since epoch to calculate 3-day cycle
+      const daysSinceEpoch = Math.floor(now.getTime() / (1000 * 60 * 60 * 24));
+      const daysInCurrentCycle = daysSinceEpoch % 3; // 0, 1, or 2
+      const daysLeft = 2 - daysInCurrentCycle; // Days left in current 3-day cycle
+      
+      // Calculate hours, minutes, seconds left in current day
+      const endOfDay = new Date(now);
+      endOfDay.setHours(23, 59, 59, 999);
+      
+      // If it's the last day of the cycle, calculate time until midnight
+      if (daysLeft === 0) {
+        const diff = endOfDay.getTime() - now.getTime();
+        const hours = Math.floor((diff % (1000 * 60 * 60 * 24)) / (1000 * 60 * 60));
+        const minutes = Math.floor((diff % (1000 * 60 * 60)) / (1000 * 60));
+        const seconds = Math.floor((diff % (1000 * 60)) / 1000);
+        
+        setTimeLeft({
+          days: 0,
+          hours,
+          minutes,
+          seconds
+        });
+      } else {
+        // For other days, just show full days until reset
+        setTimeLeft({
+          days: daysLeft,
+          hours: 23 - now.getHours(),
+          minutes: 59 - now.getMinutes(),
+          seconds: 59 - now.getSeconds()
+        });
+      }
+    };
+
+    // Update every second
+    const timer = setInterval(calculateTimeLeft, 1000);
+    calculateTimeLeft(); // Initial call
+
+    return () => clearInterval(timer);
+  }, []);
+
+  return (
+    <div className="flex items-center justify-center gap-2 sm:gap-4 mt-6">
+      <div className="bg-white/20 backdrop-blur-sm rounded-lg p-3 sm:p-4 text-center min-w-[60px] sm:min-w-[80px]">
+        <div className="text-2xl sm:text-4xl font-bold text-white">
+          {timeLeft.days.toString().padStart(2, '0')}
+        </div>
+        <div className="text-xs sm:text-sm opacity-80">Days</div>
+      </div>
+      <div className="text-2xl sm:text-4xl font-bold text-white">:</div>
+      <div className="bg-white/20 backdrop-blur-sm rounded-lg p-3 sm:p-4 text-center min-w-[60px] sm:min-w-[80px]">
+        <div className="text-2xl sm:text-4xl font-bold text-white">
+          {timeLeft.hours.toString().padStart(2, '0')}
+        </div>
+        <div className="text-xs sm:text-sm opacity-80">Hours</div>
+      </div>
+      <div className="text-2xl sm:text-4xl font-bold text-white">:</div>
+      <div className="bg-white/20 backdrop-blur-sm rounded-lg p-3 sm:p-4 text-center min-w-[60px] sm:min-w-[80px]">
+        <div className="text-2xl sm:text-4xl font-bold text-white">
+          {timeLeft.minutes.toString().padStart(2, '0')}
+        </div>
+        <div className="text-xs sm:text-sm opacity-80">Minutes</div>
+      </div>
+      <div className="text-2xl sm:text-4xl font-bold text-white">:</div>
+      <div className="bg-white/20 backdrop-blur-sm rounded-lg p-3 sm:p-4 text-center min-w-[60px] sm:min-w-[80px]">
+        <div className="text-2xl sm:text-4xl font-bold text-white">
+          {timeLeft.seconds.toString().padStart(2, '0')}
+        </div>
+        <div className="text-xs sm:text-sm opacity-80">Seconds</div>
+      </div>
+    </div>
+  );
+};
+
+// Import Swiper styles
 import 'swiper/css';
 import 'swiper/css/navigation';
 import 'swiper/css/pagination';
+import 'swiper/css/autoplay';
+
+// Slider image paths - using direct paths from public directory
+const slider1 = '/assets/slider2.jpg';
+const slider2 = '/assets/slider1.jpg';
+const slider3 = '/assets/slide3.jpg'; // Using slider2 as fallback for slider3
 
 
 export default function Homepage() {
@@ -56,6 +150,38 @@ export default function Homepage() {
     retry: 3,
     staleTime: 5 * 60 * 1000, // 5 minutes
   });
+
+  // Slider data
+  const slides = [
+    {
+      id: 1,
+      title: 'From Click to Doorstep — In Just One Hour',
+      description: 'Shop fast. Get it faster.',
+      buttonText: 'Shop Now',
+      url: '/products',
+      image: slider1,
+      overlay: 'rgba(0, 0, 0, 0.4)'
+    },
+    {
+      id: 2,
+      title: 'Hot & Fresh – Tasty Food at Your Doorstep',
+      description: 'Delicious meals delivered fast',
+      buttonText: 'Order Now',
+      url: '/restaurants',
+      image: slider2,
+      overlay: 'rgba(0, 0, 0, 0.4)'
+    },
+    {
+      id: 3,
+      title: 'Flash Sale! Limited Time Offer',
+      description: 'Hurry! These deals end in',
+      buttonText: 'Shop Now',
+      url: '/flash-sale',
+      image: slider3,
+      overlay: 'rgba(0, 0, 0, 0.5)',
+      showTimer: true
+    }
+  ];
 
   // Enhanced error logging with more context
   if (productsError) {
@@ -154,97 +280,93 @@ export default function Homepage() {
   return (
     <div className="min-h-screen">
       {/* Hero Slider Section */}
-      <section className="relative h-[40vh] sm:h-[50vh] lg:h-[60vh] overflow-hidden">
+      <section className="relative w-full h-[50vh] min-h-[300px]">
         <Swiper
           modules={[Navigation, Pagination, Autoplay]}
           spaceBetween={0}
           slidesPerView={1}
           navigation
-          pagination={{ clickable: true }}
-          autoplay={{ delay: 4000, disableOnInteraction: false }}
-          className="h-full"
+          pagination={{ 
+            clickable: true,
+            el: '.swiper-pagination',
+            type: 'bullets',
+          }}
+          autoplay={{ 
+            delay: 4000, 
+            disableOnInteraction: false 
+          }}
+          className="h-full w-full m-0 p-0"
+          style={{
+            '--swiper-navigation-color': '#ffffff',
+            '--swiper-pagination-color': '#ffffff',
+            '--swiper-pagination-bullet-inactive-color': 'rgba(255, 255, 255, 0.5)',
+            '--swiper-pagination-bullet-inactive-opacity': '1',
+            '--swiper-pagination-bullet-size': '10px',
+            '--swiper-pagination-bullet-horizontal-gap': '6px',
+          }}
         >
-          {/* Slide 1 - Fast Delivery */}
-          <SwiperSlide>
-            <div className="relative h-full flex items-center justify-center" style={{
-              backgroundImage: `url(/attached_assets/slider2_1749495663488.jpg)`,
-              backgroundSize: 'cover',
-              backgroundPosition: 'center',
-              backgroundRepeat: 'no-repeat'
-            }}>
-              <div className="absolute inset-0 bg-black/40"></div>
-              <div className="relative text-center text-white px-4 sm:px-6 lg:px-8 max-w-4xl mx-auto">
-                <h1 className="text-2xl sm:text-3xl md:text-4xl lg:text-5xl font-bold mb-4 leading-tight">
-                  From Click to Doorstep — In Just One Hour
-                </h1>
-                <p className="text-base sm:text-lg md:text-xl mb-6 font-medium opacity-90">
-                  Shop fast. Get it faster.
-                </p>
-                <Link href="/products">
-                  <Button size="lg" className="bg-white text-black hover:bg-gray-100 text-base sm:text-lg px-6 sm:px-8 py-3 sm:py-4 rounded-full font-semibold">
-                    Shop Now
-                    <ArrowRight className="ml-2 h-4 w-4 sm:h-5 sm:w-5" />
-                  </Button>
-                </Link>
+          {slides.map((slide) => (
+            <SwiperSlide key={slide.id}>
+              <div 
+                className="relative w-full h-full flex items-center justify-center p-0 m-0"
+                style={{
+                  background: `url(${slide.image}) center/cover no-repeat`,
+                  position: 'relative',
+                  height: '100%',
+                  width: '100%',
+                  display: 'flex',
+                  alignItems: 'center',
+                  justifyContent: 'center'
+                }}
+              >
+                {/* Dark overlay */}
+                <div className="absolute inset-0 bg-black/40"></div>
+                
+                {/* Content */}
+                <div className="relative z-10 max-w-4xl px-4 sm:px-6 lg:px-8 text-center text-white">
+                  <h1 className="text-3xl sm:text-4xl md:text-5xl font-bold mb-4 leading-tight drop-shadow-lg">
+                    {slide.title}
+                  </h1>
+                  <p className="text-lg sm:text-xl mb-6 opacity-90 max-w-2xl mx-auto drop-shadow">
+                    {slide.description}
+                  </p>
+                  {slide.showTimer && <CountdownTimer />}
+                  <Link href={slide.url} className="mt-6 inline-block">
+                    <Button 
+                      size="lg" 
+                      className="bg-white text-gray-900 hover:bg-gray-100 text-base sm:text-lg px-8 py-6 rounded-full font-semibold shadow-lg hover:shadow-xl transition-all duration-200 transform hover:-translate-y-0.5"
+                    >
+                      {slide.buttonText}
+                      <ArrowRight className="ml-2 h-5 w-5" />
+                    </Button>
+                  </Link>
+                </div>
               </div>
+            </SwiperSlide>
+          ))}
+          
+          {/* Custom pagination */}
+          <div className="swiper-pagination !bottom-6"></div>
+          
+          {/* Navigation buttons */}
+          <div className="swiper-button-next after:hidden">
+            <div className="h-12 w-12 rounded-full bg-white/20 backdrop-blur-sm flex items-center justify-center">
+              <svg className="w-6 h-6 text-white" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+                <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M9 5l7 7-7 7" />
+              </svg>
             </div>
-          </SwiperSlide>
-
-          {/* Slide 2 - Food Delivery */}
-          <SwiperSlide>
-            <div className="relative h-full flex items-center justify-center" style={{
-              backgroundImage: `url(/attached_assets/slider1_1749496287701.jpg)`,
-              backgroundSize: 'cover',
-              backgroundPosition: 'center',
-              backgroundRepeat: 'no-repeat'
-            }}>
-              <div className="absolute inset-0 bg-black/25"></div>
-              <div className="relative text-center text-white px-4 sm:px-6 lg:px-8 max-w-4xl mx-auto">
-                <h1 className="text-2xl sm:text-3xl md:text-4xl lg:text-6xl font-bold mb-4 sm:mb-6 leading-tight">
-                  Hot & Fresh – Tasty Food at Your Doorstep
-                </h1>
-                <p className="text-base sm:text-lg md:text-xl lg:text-2xl mb-6 sm:mb-8 font-medium opacity-90">
-                  Delicious meals delivered within the hour.
-                </p>
-                <Link href="/products?category=1">
-                  <Button size="lg" className="bg-white text-black hover:bg-gray-100 text-base sm:text-lg px-6 sm:px-8 py-3 sm:py-4 rounded-full font-semibold">
-                    Order Now
-                    <ArrowRight className="ml-2 h-4 w-4 sm:h-5 sm:w-5" />
-                  </Button>
-                </Link>
-              </div>
+          </div>
+          <div className="swiper-button-prev after:hidden">
+            <div className="h-12 w-12 rounded-full bg-white/20 backdrop-blur-sm flex items-center justify-center">
+              <svg className="w-6 h-6 text-white" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+                <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M15 19l-7-7 7-7" />
+              </svg>
             </div>
-          </SwiperSlide>
-
-          {/* Slide 3 - Limited Offers */}
-          <SwiperSlide>
-            <div className="relative h-full flex items-center justify-center" style={{
-              backgroundImage: `url(/attached_assets/slider2_1749495663488.jpg)`,
-              backgroundSize: 'cover',
-              backgroundPosition: 'center',
-              backgroundRepeat: 'no-repeat'
-            }}>
-              <div className="absolute inset-0 bg-black/20"></div>
-              <div className="relative text-center text-white px-4 sm:px-6 lg:px-8 max-w-4xl mx-auto">
-                <h1 className="text-2xl sm:text-3xl md:text-4xl lg:text-6xl font-bold mb-4 sm:mb-6 leading-tight">
-                  Grab the Offer Fast – Limited Time Only!
-                </h1>
-                <p className="text-base sm:text-lg md:text-xl lg:text-2xl mb-6 sm:mb-8 font-medium opacity-90">
-                  Deals you can't miss.
-                </p>
-                <Link href="/products">
-                  <Button size="lg" className="bg-white text-black hover:bg-gray-100 text-base sm:text-lg px-6 sm:px-8 py-3 sm:py-4 rounded-full font-semibold">
-                    Grab Deal
-                    <ArrowRight className="ml-2 h-4 w-4 sm:h-5 sm:w-5" />
-                  </Button>
-                </Link>
-              </div>
-            </div>
-          </SwiperSlide>
+          </div>
         </Swiper>
       </section>
 
-      {/* Categories/Menu */}
+      {/* Categories/Menu Section */}
       <section className="py-8 sm:py-12 lg:py-16 bg-background">
         <div className="max-w-7xl mx-auto px-4 sm:px-6 lg:px-8">
           <div className="flex flex-col sm:flex-row sm:justify-between sm:items-center mb-6 sm:mb-10 gap-4">

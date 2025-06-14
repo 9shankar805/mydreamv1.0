@@ -20,7 +20,7 @@ import { apiRequest } from "@/lib/queryClient";
 import ImageUpload from "@/components/ImageUpload";
 import { LocationPicker } from "@/components/LocationPicker";
 import { useAuth } from "@/hooks/useAuth";
-import { BackToDashboard } from "@/components/BackToDashboard";
+import BackToDashboard from "@/components/BackToDashboard";
 
 const storeSchema = z.object({
   name: z.string().min(1, "Store name is required"),
