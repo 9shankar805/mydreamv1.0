@@ -1,0 +1,40 @@
+# Render Blueprint for Siraha Bazaar
+# Reference: https://render.com/docs/blueprint-spec
+
+services:
+  - type: web
+    name: siraha-bazaar
+    env: node
+    buildCommand: npm install && npm run build
+    startCommand: npm start
+    envVars:
+      - key: NODE_ENV
+        value: production
+      - key: PORT
+        value: 10000
+      # Add other environment variables in the Render dashboard
+    
+    # Auto-deploy from main branch
+    autoDeploy: true
+    branch: main
+    
+    # Resource allocation (adjust based on your needs)
+    plan: free  # or 'starter' or 'standard' for production
+    
+    # Health check path (adjust based on your app)
+    healthCheckPath: /
+    
+    # Build and deploy settings
+    buildCommand: npm install && npm run build
+    buildCommandSuccessRegex: "Build completed"
+    
+    # Scale settings (for non-free plans)
+    # numInstances: 1
+    # instanceSize: standard-1x
+
+# Uncomment and configure if you need a PostgreSQL database
+# databases:
+#   - name: siraha-bazaar-db
+#     databaseName: sirahabazaarfinal
+#     user: admin
+#     plan: free  # or 'starter' or 'standard' for production

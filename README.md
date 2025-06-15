@@ -18,6 +18,45 @@ A comprehensive multi-vendor e-commerce marketplace built with modern web techno
 - **Delivery Partners** - Accept deliveries, track routes, update status
 - **Administrators** - Platform oversight, user management, system configuration
 
+## Deployment
+
+### Deploy to Render
+
+1. Click the button below to deploy to Render:
+
+   [![Deploy to Render](https://render.com/images/deploy-to-render-button.svg)](https://render.com/deploy)
+
+2. Select your repository
+3. Set the following environment variables in the Render dashboard:
+   - `NODE_ENV`: production
+   - `DATABASE_URL`: Your PostgreSQL connection string
+   - `SESSION_SECRET`: A random string for session encryption
+   - Other required environment variables from `.env.example`
+
+### Deploy to DigitalOcean App Platform
+
+1. Click the button below to deploy to DigitalOcean:
+
+   [![Deploy to DO](https://mp-assets1.nyc3.digitaloceanspaces.com/deploy-to-digitalocean.svg)](https://cloud.digitalocean.com/apps/new?repo=https://github.com/yourusername/siraha-bazaar/tree/main)
+
+2. Select your repository
+3. Configure your app:
+   - Set the build command: `npm run build`
+   - Set the run command: `npm start`
+   - Set the HTTP port to `5000`
+4. Add your environment variables
+5. Click "Launch App"
+
+### Local Development with Docker
+
+1. Make sure Docker and Docker Compose are installed
+2. Copy `.env.example` to `.env` and update the values
+3. Run:
+   ```bash
+   docker-compose up --build
+   ```
+4. The app will be available at `http://localhost:5000`
+
 ## Quick Start for VS Code
 
 ### Prerequisites

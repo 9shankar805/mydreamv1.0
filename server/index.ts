@@ -78,15 +78,36 @@ app.use((req, res, next) => {
     serveStatic(app);
   }
 
-  // ALWAYS serve the app on port 5000
-  // this serves both the API and the client.
-  // It is the only port that is not firewalled.
-  const port = 5000;
+    // Use environment variable for port or default to 5000 for local development
+  const port = process.env.PORT || 5000;
+  const host = process.env.HOST || '0.0.0.0';
+  
+  // Handle different environments
+  const isProduction = process.env.NODE_ENV === 'production';
+  const protocol = isProduction ? 'https' : 'http';
+  
   server.listen({
-    port,
-    host: "0.0.0.0",
+    port: Number(port),
+    host,
     reusePort: true,
   }, () => {
-    log(`serving on port ${port}`);
+    log(`Server running in ${isProduction ? 'production' : 'development'} mode`);
+    log(`Serving on ${protocol}://${host}:${port}`);
+    
+    // Log environment info for debugging
+    if (!isProduction) {
+      console.log('Environment Variables:');
+      console.log('- NODE_ENV:', process.env.NODE_ENV);
+      console.log('- DATABASE_URL:', process.env.DATABASE_URL ? '***' : 'Not set');
+      console.log('- HERE_API_KEY:', process.env.HERE_API_KEY ? '***' : 'Not set');
+    }
+  });
+  
+  // Handle shutdown gracefully
+  process.on('SIGTERM', () => {
+    console.log('SIGTERM received. Shutting down gracefully');
+    server.close(() => {
+      console.log('Process terminated');
+    });
   });
 })();
